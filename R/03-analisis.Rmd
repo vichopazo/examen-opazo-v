@@ -1,0 +1,17 @@
+---
+title: "Examen/Proyecto final del curso"
+subtitle: "Cátedra de Análisis de Datos con R - Universidad Alberto Hurtado"
+lecturer: "Valentina Andrade"
+assistant lecturers: "Dafne Jaime & Nicolás Godoy"
+author: "Vicente Opazo Cortés"
+date: "22-11-2021"
+output: html_document
+---
+
+```{r configuración_de_chunks, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Presentación de la base de datos
+
+## 1.1. Descripción de la base de datos
