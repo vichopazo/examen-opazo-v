@@ -12,6 +12,66 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# 1. Presentación de la base de datos
+```{r carga_de_paquetes, warning=FALSE, include=FALSE}
+library(pacman)
+pacman::p_load(tidyverse,
+               sjmisc,
+               srvyr,
+               dplyr,
+               tidyr,
+               sjPlot,
+               ggplot2, 
+               gridExtra)
+```
 
-## 1.1. Descripción de la base de datos
+```{r carga_de_base_procesada, warning=FALSE, include=FALSE}
+datos_proc <- readRDS(url("https://github.com/vichopazo/examen-opazo-v/raw/main/output/data/datos_proc.rds"))
+```
+
+```{r creacion_objeto_encuesta_a_partir_de_base_proc, warning=FALSE, include=FALSE}
+ene_2021_fact_cal <- datos_proc %>%
+  as_survey_design(ids = id, 
+                   strata = estrato,
+                   weights = fact_exp)
+```
+
+```{r set_up_options_forlonelyPSU, warning=FALSE, include=FALSE}
+options(survey.adjust.domain.lonely=TRUE)
+options(survey.lonely.psu="adjust")
+```
+
+#Participación laboral femenina en contexto de pandemia de COVID-19 en Chile (2021)
+
+#Abstract
+
+<div style="text-align: justify">  
+
+# 1. Introducción
+
+<div style="text-align: justify"> 
+
+# 2. Análisis descriptivo bivariado
+
+## 2.1. Frecuencia de inclusión/exclusión de la fuerza de trabajo según sexo
+
+```{r creacion_objeto_calculo_IFT_sexo, warning=FALSE, include=FALSE}
+IFT_sexo <- ene_2021_fact_cal %>% 
+  filter(!is.na(activ)) %>% 
+  filter(!is.na(sexo)) %>%
+  group_by(activ, sexo) %>% 
+  summarise(prop = survey_prop(vartype = "ci"), 
+            total = survey_total(vartype = "ci")) %>% 
+  mutate(per = prop*100, ci_low = prop_low*100, ci_upp = prop_upp*100) %>%
+  select(activ, sexo, per, total, ci_low, ci_upp) %>% 
+  pivot_wider(names_from = "activ", values_from = c("per", "total"))
+```
+
+```{r tabla_1_IFT_sexo, echo=FALSE, warning=FALSE}
+tab_df(IFT_sexo,
+       title = "Tabla 1. Frecuencia de inclusión/exclusión de la fuerza de trabajo según sexo",
+       footnote = "Elaboracion propia en base a ENE 2021-08 (j-a-s)",
+       show.footnote = T,
+       encoding = 'latin9')
+```
+
+

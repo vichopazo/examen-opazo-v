@@ -1,0 +1,2 @@
+"0","options(survey.adjust.domain.lonely=TRUE)"
+"0","options(survey.lonely.psu=""adjust"")"

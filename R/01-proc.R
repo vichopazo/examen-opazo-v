@@ -1,14 +1,14 @@
 #Cargar paquetes
 
 library(pacman)
-
 pacman::p_load(tidyverse,
                sjmisc,
                srvyr,
                tidyr, 
                dplyr, 
                sjPlot, 
-               car)
+               car, 
+               haven)
 
 #Cargar y renombrar BDD (Encuesta nacional de empleo 2021_08, j-a-s) 
 
@@ -23,7 +23,7 @@ view_df(ENE_2021_08)
 
 find_var(ENE_2021_08, "sexo") #nr col: 15
 find_var(ENE_2021_08, "cine") #nr col: 173 
-find_var(ENE_2021_08, "edad") #nr col: 177 (select==tramo_edad)
+find_var(ENE_2021_08, "edad") #nr col: 177
 find_var(ENE_2021_08, "activ") #nr col: 178
 find_var(ENE_2021_08, "e12") #nr col: 125 -motivos de no estar disponible para trabajar
 find_var(ENE_2021_08, "e9") #nr col: 119 -razón de no buscar empleo
@@ -54,9 +54,8 @@ frq(ENE_2021_08$e9)
 
 #Crear objeto BBD procesada, seleccionar y renombrar variables de interés
 
-datos_proc <- select(ENE_2021_08, sexo, cine, edad, edad_tramo = tramo_edad, activ, 
-                     motiv_no_dis_trab = e12, motiv_no_bus_trab = e9, id = id_identificacion, 
-                     estrato, fact_exp = fact_cal)
+datos_proc <- select(ENE_2021_08, sexo, cine, edad, activ, motiv_no_dis_trab = e12, motiv_no_bus_trab = e9, 
+                     id = id_identificacion, estrato, fact_exp = fact_cal)
 
 view_df(datos_proc) 
 
@@ -64,9 +63,9 @@ view_df(datos_proc)
 
 datos_proc <- datos_proc %>% 
   filter(edad >= 15) %>%
-  mutate(edad_tramo = case_when(edad_tramo >= 1 & edad_tramo <= 3 ~ "Joven", edad_tramo > 3 & 
-                                      edad_tramo <= 9 ~ "Adulto/a", edad_tramo > 9 ~ "Adulto/a mayor", 
-                                    TRUE ~ NA_character_))
+  mutate(edad_tramo = case_when(edad >= 15 & edad <=29 ~ "Joven", 
+                                edad > 29 & edad <=59 ~ "Adulto/a", 
+                                edad > 59 ~ "Adulto/a mayor", TRUE ~ NA_character_))
 
 datos_proc <- datos_proc %>% 
   mutate(activ = case_when(activ >= 1 & activ < 3 ~ "Dentro de la fuerza de trabajo", activ >= 3 ~ 
