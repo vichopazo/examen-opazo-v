@@ -1,4 +1,4 @@
 "0","ene_2021_fact_cal <- datos_proc %>%"
 "0","  as_survey_design(ids = id, "
-"0","                   strata = estrato,"
+"0","                    strata = estrato,"
 "0","                   weights = fact_exp)"

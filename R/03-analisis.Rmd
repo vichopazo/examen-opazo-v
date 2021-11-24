@@ -1,5 +1,5 @@
 ---
-title: "Examen/Proyecto final del curso"
+title: "Participación laboral femenina en contexto de pandemia de COVID-19 en Chile (2021)"
 subtitle: "Cátedra de Análisis de Datos con R - Universidad Alberto Hurtado"
 lecturer: "Valentina Andrade"
 assistant lecturers: "Dafne Jaime & Nicolás Godoy"
@@ -31,7 +31,7 @@ datos_proc <- readRDS(url("https://github.com/vichopazo/examen-opazo-v/raw/main/
 ```{r creacion_objeto_encuesta_a_partir_de_base_proc, warning=FALSE, include=FALSE}
 ene_2021_fact_cal <- datos_proc %>%
   as_survey_design(ids = id, 
-                   strata = estrato,
+                    strata = estrato,
                    weights = fact_exp)
 ```
 
@@ -40,38 +40,172 @@ options(survey.adjust.domain.lonely=TRUE)
 options(survey.lonely.psu="adjust")
 ```
 
-#Participación laboral femenina en contexto de pandemia de COVID-19 en Chile (2021)
-
-#Abstract
+## Abstract
 
 <div style="text-align: justify">  
 
-# 1. Introducción
+## 1. Introducción
 
-<div style="text-align: justify"> 
+<div style="text-align: justify"> El Informe COVID-19 N°9 de la CEPAL (CEPAL, 2021) estima que la pandemia de COVID-19 ha tenido un impacto significativo en el aumento de las *brechas de género* en la Región, sobre todo en materia de ingreso y participación laboral. Chile no escapa a dicha tendencia negativa. Si bien la TD[^1] femenina en 2020 (11,7%) tuvo un aumento interanual de 3,9pp -menor al proyectado por la CEPAL-, esto no se debe a factores positivos, sino más bien todo lo contrario: la relativamente baja variación de la TD femenina interanual 2019-2020 en Chile se explica, fundamentalmente, debido a **una disminución significativa de la TP laboral femenina**[^2]. De hecho, hacia junio del 2020, esta alcanzó un nivel (41,2%) más bajo del que poseía hacia el año 2010 (46,8%), y si bien la brecha de género en materia de participación laboral es menor que en ese entonces (-27,4pp en 2010; -21,9pp en 2020), **se ha producido un aumento de la brecha respecto al trimestre más reciente previo al inicio de la pandemia** (nov. 2019-en. 2020), para el cual alcanzaba los -20,6pp[^3] (INE, 2021).
 
-# 2. Análisis descriptivo bivariado
+En este contexto surge la cuestión: ¿Cuál es el estado actual de la brecha de género en participación laboral en Chile? De este problema deriva el objetivo principal del presente estudio: estimar la brecha de género en participación laboral en Chile para el período de medición más reciente (trim. j-a-s, 2021). Para llevar a cabo este objetivo se realizará un análisis descriptivo a través de la estimación de parámetros poblacionales. <div/>
 
-## 2.1. Frecuencia de inclusión/exclusión de la fuerza de trabajo según sexo
+## 2. Análisis descriptivo bivariado a nivel poblacional
 
-```{r creacion_objeto_calculo_IFT_sexo, warning=FALSE, include=FALSE}
-IFT_sexo <- ene_2021_fact_cal %>% 
-  filter(!is.na(activ)) %>% 
-  filter(!is.na(sexo)) %>%
-  group_by(activ, sexo) %>% 
-  summarise(prop = survey_prop(vartype = "ci"), 
-            total = survey_total(vartype = "ci")) %>% 
-  mutate(per = prop*100, ci_low = prop_low*100, ci_upp = prop_upp*100) %>%
-  select(activ, sexo, per, total, ci_low, ci_upp) %>% 
+### 2.1. Frecuencia de participación en la fuerza de trabajo según sexo
+
+```{r creacion_objeto_calculo_activ_sexo, warning=FALSE, include=FALSE}
+activ_sexo <- ene_2021_fact_cal %>% 
+  group_by(sexo, activ) %>% 
+  summarise(prop = survey_prop(vartype = "ci", na.rm = T), 
+            total = survey_total(vartype = "ci", na.rm = T)) %>% 
+  mutate(per = prop*100) %>%
+  select(activ, sexo, per, total) %>% 
   pivot_wider(names_from = "activ", values_from = c("per", "total"))
 ```
 
-```{r tabla_1_IFT_sexo, echo=FALSE, warning=FALSE}
-tab_df(IFT_sexo,
-       title = "Tabla 1. Frecuencia de inclusión/exclusión de la fuerza de trabajo según sexo",
+```{r tabla_1_activ_sexo, echo=FALSE, warning=FALSE}
+tab_df(activ_sexo,
+       title = "Tabla 1. Frecuencia de participación en la fuerza de trabajo según sexo",
        footnote = "Elaboracion propia en base a ENE 2021-08 (j-a-s)",
        show.footnote = T,
        encoding = 'latin9')
 ```
 
+```{r grafico_1_activ_sexo, echo=FALSE, warning=FALSE}
+set_theme(base = theme_light(), 
+          title.align = "center",
+          geom.label.size = 3.5,
+          axis.textsize.y = .8) 
+plot_xtab(ene_2021_fact_cal$variables$sexo, ene_2021_fact_cal$variables$activ, title = "Gráfico 1. Frecuencia de participación en la fuerza de trabajo según sexo", type = "bar", bar.pos = "stack", margin = "row", show.total = FALSE, show.n = TRUE, axis.titles = "Sexo", legend.title = "Participación en la fuerza de trabajo", weight.by = ene_2021_fact_cal$variables$fact_exp)
+```
 
+### 2.2. Frecuencia de participación en la fuerza de trabajo según tramo etario
+
+```{r creacion_objeto_calculo_activ_edad_tramo, warning=FALSE, include=FALSE}
+activ_edad_tramo <- ene_2021_fact_cal %>% 
+  group_by(edad_tramo, activ) %>% 
+  summarise(prop = survey_prop(vartype = "ci", na.rm = T), 
+            total = survey_total(vartype = "ci", na.rm = T)) %>% 
+  mutate(per = prop*100) %>%
+  select(activ, edad_tramo, per, total) %>% 
+  pivot_wider(names_from = "activ", values_from = c("per", "total"))
+```
+
+```{r tabla_2_activ_edad_tramo, echo=FALSE, warning=FALSE}
+tab_df(activ_edad_tramo,
+       title = "Tabla 2. Frecuencia de participación en la fuerza de trabajo según tramo etario",
+       footnote = "Elaboracion propia en base a ENE 2021-08 (j-a-s)",
+       show.footnote = T,
+       encoding = 'latin9')
+```
+
+```{r grafico_2_activ_edad_tramo, echo=FALSE, warning=FALSE}
+set_theme(base = theme_light(), 
+          title.align = "center",
+          geom.label.size = 3.5,
+          axis.textsize.y = .8) 
+plot_xtab(ene_2021_fact_cal$variables$edad_tramo, ene_2021_fact_cal$variables$activ, title = "Gráfico 2. Frecuencia de participación en la fuerza de trabajo según tramo etario", type = "bar", bar.pos = "stack", margin = "row", show.total = FALSE, show.n = TRUE, axis.titles = "Tramo etario", legend.title = "Participación en la fuerza de trabajo", weight.by = ene_2021_fact_cal$variables$fact_exp)
+```
+
+### 2.3. Frecuencia de participación en la fuerza de trabajo según nivel educacional (CINE)
+
+```{r creacion_objeto_calculo_activ_cine, warning=FALSE, include=FALSE}
+activ_cine <- ene_2021_fact_cal %>% 
+  group_by(cine, activ) %>% 
+  summarise(prop = survey_prop(vartype = "ci", na.rm = T), 
+            total = survey_total(vartype = "ci", na.rm = T)) %>% 
+  mutate(per = prop*100) %>%
+  select(activ, cine, per, total) %>% 
+  pivot_wider(names_from = "activ", values_from = c("per", "total"))
+```
+
+```{r tabla_3_activ_cine, echo=FALSE, warning=FALSE}
+tab_df(activ_cine,
+       title = "Tabla 3. Frecuencia de participación en la fuerza de trabajo según nivel educacional",
+       footnote = "Elaboracion propia en base a ENE 2021-08 (j-a-s)",
+       show.footnote = T,
+       encoding = 'latin9')
+```
+
+```{r grafico_3_activ_cine, echo=FALSE, warning=FALSE}
+set_theme(base = theme_light(), 
+          title.align = "center",
+          geom.label.size = 3.5,
+          axis.textsize.y = .8) 
+plot_xtab(ene_2021_fact_cal$variables$cine, ene_2021_fact_cal$variables$activ, title = "Gráfico 3. Frecuencia de participación en la fuerza de trabajo según nivel educacional", type = "bar", bar.pos = "stack", margin = "row", show.total = FALSE, show.n = FALSE, coord.flip = TRUE, axis.titles = "Nivel educacional", legend.title = "Participación en la fuerza de trabajo", weight.by = ene_2021_fact_cal$variables$fact_exp)
+```
+
+### 2.4. Motivo de no estar disponible para trabajar según sexo
+
+```{r creacion_objeto_calculo_motiv_no_dis_trab_sexo, warning=FALSE, include=FALSE}
+motiv_no_dis_trab_sexo <- ene_2021_fact_cal %>% 
+  group_by(sexo, motiv_no_dis_trab) %>% 
+  summarise(prop = survey_prop(vartype = "ci", na.rm = T), 
+            total = survey_total(vartype = "ci", na.rm = T)) %>% 
+  mutate(per = prop*100) %>%
+  select(sexo, motiv_no_dis_trab, per, total) %>% 
+  pivot_wider(names_from = "motiv_no_dis_trab", values_from = c("per", "total"))
+```
+
+```{r tabla_4_motiv_no_dis_trab_sexo, echo=FALSE, warning=FALSE}
+tab_df(motiv_no_dis_trab_sexo,
+       title = "Tabla 4. Motivo de no estar disponible para trabajar según sexo",
+       footnote = "Elaboracion propia en base a ENE 2021-08 (j-a-s)",
+       show.footnote = T,
+       encoding = 'latin9')
+```
+
+```{r grafico_4_motiv_no_dis_trab_sexo, echo=FALSE, warning=FALSE}
+set_theme(base = theme_light(), 
+          title.align = "center",
+          geom.label.size = 3.5,
+          axis.textsize.y = .6) 
+plot_xtab(ene_2021_fact_cal$variables$sexo, ene_2021_fact_cal$variables$motiv_no_dis_trab, title = "Gráfico 4. Motivo de no estar disponible para trabajar según sexo", type = "bar", margin = "row", show.total = FALSE, show.n = FALSE, coord.flip = FALSE, axis.titles = "Sexo", legend.title = "Motivos", weight.by = ene_2021_fact_cal$variables$fact_exp)
+```
+
+### 2.5. Razones por las que no ha buscado empleo el último mes según sexo
+
+```{r creacion_objeto_calculo_motiv_no_bus_trab_sexo, warning=FALSE, include=FALSE}
+motiv_no_bus_trab_sexo <- ene_2021_fact_cal %>% 
+  group_by(sexo, motiv_no_bus_trab) %>% 
+  summarise(prop = survey_prop(vartype = "ci", na.rm = T), 
+            total = survey_total(vartype = "ci", na.rm = T)) %>% 
+  mutate(per = prop*100) %>%
+  select(sexo, motiv_no_bus_trab, per, total) %>% 
+  pivot_wider(names_from = "motiv_no_bus_trab", values_from = c("per", "total"))
+```
+
+```{r tabla_5_motiv_no_bus_trab_sexo, echo=FALSE, warning=FALSE}
+tab_df(motiv_no_bus_trab_sexo,
+       title = "Tabla 5. Razones por las que no ha buscado empleo el último mes según sexo",
+       footnote = "Elaboracion propia en base a ENE 2021-08 (j-a-s)",
+       show.footnote = T,
+       encoding = 'latin9')
+```
+
+```{r grafico_5_motiv_no_bus_trab_sexo, echo=FALSE, warning=FALSE}
+set_theme(base = theme_light(), 
+          title.align = "center",
+          geom.label.size = 3.5,
+          axis.textsize.y = .6) 
+plot_xtab(ene_2021_fact_cal$variables$sexo, ene_2021_fact_cal$variables$motiv_no_dis_trab, title = "Gráfico 5.Razones por las que no ha buscado empleo el último mes según sexo", type = "bar", margin = "row", show.total = FALSE, show.n = FALSE, coord.flip = FALSE, axis.titles = "Sexo", legend.title = "Razones", weight.by = ene_2021_fact_cal$variables$fact_exp)
+```
+
+## 3-Conclusiones
+
+## Referencias
+
+CEPAL. (2021). Informe Especial COVID-19 No. 9: La autonomía económica de las mujeres en la recuperación sostenible y con igualdad. n/s: CEPAL - Naciones Unidas.
+
+INE. (2021). Boletín Estadístico. Género y empleo: Impacto de la crisis económica por COVID-19. Santiago de Chile: Instituto Nacional de Estadísticas.
+
+Carrasco, C. (2003). ¿Conciliación? No, gracias. Hacia una nueva organización social. En: Malabaristas de la vida. Mujeres, tiempos y trabajos, 16-34.
+
+Fraser, N. (2016). Las contradicciones del capital y los cuidados. New Left Review, 100, 111-132.
+
+[^1]: Abreviaciones: TD = tasa de desocupación, TO = tasa de ocupación, TP = tasa de participación.
+
+[^2]: La CEPAL estimó la tasa de desocupación femenina en un 22,2% (variación de +12,6pp y-o-y) para América Latina y el Caribe asumiendo la tasa de participación laboral femenina del 2019 (alrededor del 52%) como constante. De reducirse la participación laboral femenina la tasa de desocupación femenina se situaría cercana al 12% (CEPAL, 2021, pág. 2), como se dio en Chile.
+
+[^3]: Durante dicho trimestre: 73,9% de part. lab. masculina; 53,3% de part. lab. femenina (INE, 2021)
